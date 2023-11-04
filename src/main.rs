@@ -79,7 +79,6 @@ impl Morpion {
             || (self.board[0] == player && self.board[4] == player && self.board[8] == player)
             || (self.board[2] == player && self.board[4] == player && self.board[6] == player)
     }
-    // Morpion game rule here...
 }
 
 impl EventHandler for Morpion {
@@ -116,7 +115,6 @@ impl EventHandler for Morpion {
     }
 
     fn update(&mut self, ctx: &mut Context) -> GameResult {
-        // Update code here...
         while ctx.time.check_update_time(DESIRED_FPS) {
             match self.state {
                 GameState::Continue => {
