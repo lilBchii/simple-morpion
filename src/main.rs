@@ -155,7 +155,7 @@ impl EventHandler for Morpion {
                     }
                 }
                 GameState::Tie => {
-                    self.meshes.3 = graphics::Text::new("Press R to restart !");
+                    self.meshes.3 = graphics::Text::new("Tie ! Press R to restart !");
                     if ctx.keyboard.is_key_pressed(KeyCode::R) {
                         self.reset();
                     }
