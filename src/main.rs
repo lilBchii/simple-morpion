@@ -1,5 +1,6 @@
 use ggez::event::{self, EventHandler, MouseButton};
 use ggez::graphics::{self, Color};
+use ggez::input::keyboard::KeyCode;
 use ggez::{Context, ContextBuilder, GameResult};
 use glam::Vec2;
 
@@ -79,6 +80,12 @@ impl Morpion {
             || (self.board[0] == player && self.board[4] == player && self.board[8] == player)
             || (self.board[2] == player && self.board[4] == player && self.board[6] == player)
     }
+    pub fn reset(&mut self) {
+        self.board = [CellState::Free; 9];
+        self.state = GameState::Continue;
+        self.last_play = Player::X;
+    }
+
 }
 
 impl EventHandler for Morpion {
@@ -140,10 +147,14 @@ impl EventHandler for Morpion {
                     }
                 }
                 GameState::Tie => {
-                    println!("Tie");
+                    if ctx.keyboard.is_key_pressed(KeyCode::R) {
+                        self.reset();
+                    }
                 }
                 _ => {
-                    println!("{:?}", self.state);
+                    if ctx.keyboard.is_key_pressed(KeyCode::R) {
+                        self.reset();
+                    }
                 }
             }
         }
