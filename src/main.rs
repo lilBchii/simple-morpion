@@ -1,5 +1,5 @@
 use ggez::event::{self, EventHandler, MouseButton};
-use ggez::graphics::{self, Color};
+use ggez::graphics::{self, Color, Text};
 use ggez::input::keyboard::KeyCode;
 use ggez::{Context, ContextBuilder, GameResult};
 use glam::Vec2;
@@ -42,7 +42,7 @@ struct Morpion {
     board: [CellState; 9],
     state: GameState,
     last_play: Player,
-    meshes: (graphics::Mesh, graphics::Image, graphics::Image),
+    meshes: (graphics::Mesh, graphics::Image, graphics::Image, graphics::Text),
     clicked: (bool, Option<usize>),
 }
 
@@ -51,11 +51,12 @@ impl Morpion {
         let grid = make_grid_lines(ctx, 6.5, Color::from_rgb(55, 60, 75), PADDING, CELL_SIZE)?;
         let circle = graphics::Image::from_path(ctx, "/circle.png")?;
         let cross = graphics::Image::from_path(ctx, "/cross.png")?;
+        let text = Text::new("Circle begins !");
         Ok(Morpion {
             board: [CellState::Free; 9],
             state: GameState::Continue,
             last_play: Player::X,
-            meshes: (grid, cross, circle),
+            meshes: (grid, cross, circle, text),
             clicked: (false, None),
         })
     }
@@ -84,6 +85,7 @@ impl Morpion {
         self.board = [CellState::Free; 9];
         self.state = GameState::Continue;
         self.last_play = Player::X;
+        self.meshes.3 = graphics::Text::new("Circle begins !");
     }
 
 }
@@ -118,6 +120,12 @@ impl EventHandler for Morpion {
                 }
             }
         }
+        // Text
+        canvas.draw(
+            &self.meshes.3,
+            graphics::DrawParam::from([PADDING.0, 1.5 * PADDING.0 + 3.0 * CELL_SIZE])
+                .color(Color::WHITE),
+        );
         canvas.finish(ctx)
     }
 
@@ -147,11 +155,13 @@ impl EventHandler for Morpion {
                     }
                 }
                 GameState::Tie => {
+                    self.meshes.3 = graphics::Text::new("Press R to restart !");
                     if ctx.keyboard.is_key_pressed(KeyCode::R) {
                         self.reset();
                     }
                 }
                 _ => {
+                    self.meshes.3 = graphics::Text::new("Press R to restart !");
                     if ctx.keyboard.is_key_pressed(KeyCode::R) {
                         self.reset();
                     }
