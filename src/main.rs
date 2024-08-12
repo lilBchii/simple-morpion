@@ -1,7 +1,7 @@
 use ggez::event::{self, EventHandler, MouseButton};
 use ggez::graphics::{self, Color, Text};
 use ggez::input::keyboard::KeyCode;
-use ggez::{Context, ContextBuilder, GameResult};
+use ggez::{Context, GameResult};
 use glam::Vec2;
 
 use std::{env, path};
@@ -10,7 +10,7 @@ const CELL_SIZE: f32 = 150.0;
 const BG_COLOR: (u8, u8, u8) = (30, 30, 38);
 
 //(top/right/left padding, bottom padding)
-const PADDING: (f32, f32) = (50.0, 50.0);
+const PADDING: (f32, f32) = (50.0, 75.0);
 
 const SCREEN_SIZE: (f32, f32) = (
     (CELL_SIZE * 3.0) + (2.0 * PADDING.0),
@@ -42,13 +42,24 @@ struct Morpion {
     board: [CellState; 9],
     state: GameState,
     last_play: Player,
-    meshes: (graphics::Mesh, graphics::Image, graphics::Image, graphics::Text),
-    clicked: (bool, Option<usize>),
+    meshes: (
+        graphics::Mesh,
+        graphics::Image,
+        graphics::Image,
+        graphics::Text,
+    ),
+    clicked: Option<usize>,
 }
 
 impl Morpion {
     pub fn new(ctx: &mut Context) -> GameResult<Morpion> {
-        let grid = make_grid_lines(ctx, 6.5, Color::from_rgb(55, 60, 75), PADDING, CELL_SIZE)?;
+        let grid = make_grid_lines(
+            ctx,
+            6.5,
+            Color::from_rgb(55, 60, 75),
+            (PADDING.0, PADDING.0),
+            CELL_SIZE,
+        )?;
         let circle = graphics::Image::from_path(ctx, "/circle.png")?;
         let cross = graphics::Image::from_path(ctx, "/cross.png")?;
         let text = Text::new("Circle begins !");
@@ -57,7 +68,7 @@ impl Morpion {
             state: GameState::Continue,
             last_play: Player::X,
             meshes: (grid, cross, circle, text),
-            clicked: (false, None),
+            clicked: None,
         })
     }
     pub fn all_occupied(&self) -> bool {
@@ -87,7 +98,6 @@ impl Morpion {
         self.last_play = Player::X;
         self.meshes.3 = graphics::Text::new("Circle begins !");
     }
-
 }
 
 impl EventHandler for Morpion {
@@ -133,8 +143,7 @@ impl EventHandler for Morpion {
         while ctx.time.check_update_time(DESIRED_FPS) {
             match self.state {
                 GameState::Continue => {
-                    if self.clicked.0 {
-                        let index = self.clicked.1.unwrap();
+                    if let Some(index) = self.clicked {
                         if self.board[index] == CellState::Free {
                             match self.last_play {
                                 Player::X => {
@@ -160,8 +169,14 @@ impl EventHandler for Morpion {
                         self.reset();
                     }
                 }
-                _ => {
-                    self.meshes.3 = graphics::Text::new("Press R to restart !");
+                GameState::Win(Player::X) => {
+                    self.meshes.3 = graphics::Text::new("X won\nPress R to restart !");
+                    if ctx.keyboard.is_key_pressed(KeyCode::R) {
+                        self.reset();
+                    }
+                }
+                GameState::Win(Player::O) => {
+                    self.meshes.3 = graphics::Text::new("O won\nPress R to restart !");
                     if ctx.keyboard.is_key_pressed(KeyCode::R) {
                         self.reset();
                     }
@@ -178,7 +193,7 @@ impl EventHandler for Morpion {
         x: f32,
         y: f32,
     ) -> GameResult {
-        self.clicked = (true, Some(id_from_coord(x, y, PADDING, CELL_SIZE)));
+        self.clicked = Some(id_from_coord(x, y, (PADDING.0, PADDING.0), CELL_SIZE));
         Ok(())
     }
 
@@ -189,7 +204,7 @@ impl EventHandler for Morpion {
         _x: f32,
         _y: f32,
     ) -> GameResult {
-        self.clicked = (false, None);
+        self.clicked = None;
         Ok(())
     }
 }
